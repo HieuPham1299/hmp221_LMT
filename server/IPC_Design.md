@@ -1,4 +1,4 @@
-## Design doc for cut 3
+## Design for IPC
 
 - Both parent and child process need 1 more socket to communicate with one another
 
