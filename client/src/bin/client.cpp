@@ -15,9 +15,8 @@ using namespace std;
 
 void printFlagError();
 int connectToServer(int portno, char *hostName);
-void sendToServer(int portNo, char *hostName, char *filePath);
-void requestFromServer(int portNo, char *hostName, char *filePath);
-vec serializeFile(char *filePath);
+void sendToServer(int portNo, char *hostName, char *channel, char* message);
+void requestFromServer(int portNo, char *hostName, char *channel);
 void pushToBuffer(char *bufferP, vec *bytesP);
 
 
@@ -25,7 +24,8 @@ int main(int argv, char **argc)
 {
     bool hasValidModeFlag = false;
     char *mode;
-    char *filePath;
+    char *channel;
+    char *message;
     char *serverInfo;
     char *hostName;
     int portNo;
@@ -34,18 +34,19 @@ int main(int argv, char **argc)
         char *currentString = *(argc + i);
         if (currentString[0] == '-' && currentString[1] == '-')
         {
-            if (strcmp(currentString, "--request") == 0)
+            if (strcmp(currentString, "--subscribe") == 0)
             {
-                mode = "request";
+                mode = "subscribe";
                 hasValidModeFlag = true;
-                filePath = *(argc + i + 1);
+                channel = *(argc + i + 1);
                 break;
             }
-            else if (strcmp(currentString, "--send") == 0)
+            else if (strcmp(currentString, "--publish") == 0)
             {
-                mode = "send";
+                mode = "publish";
                 hasValidModeFlag = true;
-                filePath = *(argc + i + 1);
+                channel = *(argc + i + 1);
+                message = *(argc + i + 2);
                 break;
             }
             else if (strcmp(currentString, "--hostname") == 0)
@@ -64,10 +65,10 @@ int main(int argv, char **argc)
     // extract hostname and port number
     hostName = strtok(serverInfo, ":");
     portNo = atoi(strtok(NULL, ":"));
-    if (strcmp(mode, "send") == 0) {
-        sendToServer(portNo, hostName, filePath);
+    if (strcmp(mode, "publish") == 0) {
+        sendToServer(portNo, hostName, channel, message);
     } else {
-        requestFromServer(portNo, hostName, filePath);
+        requestFromServer(portNo, hostName, channel);
     }
 }
 
@@ -75,16 +76,16 @@ int main(int argv, char **argc)
 void printFlagError()
 {
     cout << "ERROR: Expected mode" << endl;
-    cout << "usage: client --send filename" << endl;
-    cout << "usage: client --request filename" << endl;
+    cout << "usage: client --subscribe [channel]" << endl;
+    cout << "usage: client --publish [channel] [message]" << endl;
 }
 
 /* Request a file from the server */
-void requestFromServer(int portno, char *hostName, char *fileName) {
+void requestFromServer(int portno, char *hostName, char *channel) {
     // Connect to server and get the socket descriptor
     int sockfd = connectToServer(portno, hostName);
-    printf("Requesting file \"%s\"\n", fileName);
-    struct Request requestStruct = {name : fileName};
+    printf("Reading from channel \"%s\"\n", channel);
+    struct Request requestStruct = {name : channel};
     vec serializedRequest = hmp221::serialize(requestStruct);
     // Encrypt the bytes
     for (int i = 0; i < serializedRequest.size(); i++)
@@ -126,53 +127,47 @@ void requestFromServer(int portno, char *hostName, char *fileName) {
 
     struct Message messageStruct = hmp221::deserialize_message(responseBytes);
 
-    printf("Received a file containing %ld bytes\n", messageStruct.contentBytes.size());
-    mkdir("received", 0);
-    string path = "received/" + (string)fileName;
+    printf("Received a %ld-byte message\n", messageStruct.contentBytes.size());
 
     std::cout << hmp221::deserialize_string(messageStruct.contentBytes) << std::endl;
 
-    std::cout << "Saved file in: \"" + path + "\"" << std::endl;
     printf("Terminating connection with %s:%d.\n", hostName, portno);
 } 
 
 /* Send a file to the server */
-void sendToServer(int portno, char *hostName, char *filePath)
+void sendToServer(int portno, char *hostName, char *channel, char *message)
 {
     // Connect to server and get the socket descriptor
-    // int sockfd = connectToServer(portno, hostName);
+    int sockfd = connectToServer(portno, hostName);
 
-    // // Construct a filePathString from a char pointer
-    // string filePathString(filePath);
+    // Construct a channelString from a char pointer
+    string channelString(channel);
 
-    // // Extract the file name. Reference: https://stackoverflow.com/questions/8520560/get-a-file-name-from-a-path
-    // string fileName = filePathString.substr(filePathString.find_last_of("/\\") + 1);
+    printf("Sending message to channel \"%s\"\n", channel);
+    struct Message messageStruct = {channelName: channel, contentBytes: hmp221::serialize(string(message))};
+    printf("Read message: %ld bytes\n", messageStruct.contentBytes.size());
+    vec serializedMessageStruct = hmp221::serialize(messageStruct);
 
-    // printf("Sending file \"%s\"\n", filePath);
-    // struct Message messageStruct = {channelName : fileName, bytes : serializeFile(filePath)};
-    // printf("Read file: %ld bytes\n", messageStruct.bytes.size());
-    // vec serializedmessageStruct = hmp221::serialize(messageStruct);
+    // Encrypt the bytes
+    for (int i = 0; i < serializedMessageStruct.size(); i++)
+    {
+        serializedMessageStruct[i] ^= KEY;
+    }
+    char buffer[serializedMessageStruct.size()];
 
-    // // Encrypt the bytes
-    // for (int i = 0; i < serializedmessageStruct.size(); i++)
-    // {
-    //     serializedmessageStruct[i] ^= KEY;
-    // }
-    // char buffer[serializedmessageStruct.size()];
+    // Push the encrypted bytes to buffer
+    pushToBuffer(buffer, &serializedMessageStruct);
+    printf("Sending %ld bytes\n", serializedMessageStruct.size());
 
-    // // Push the encrypted bytes to buffer
-    // pushToBuffer(buffer, &serializedmessageStruct);
-    // printf("Sending %ld bytes\n", serializedmessageStruct.size());
+    /* Send message to the server */
+    int n = write(sockfd, buffer, serializedMessageStruct.size());
+    if (n < 0)
+    {
+        perror("ERROR writing to socket");
+        exit(1);
+    }
 
-    // /* Send message to the server */
-    // int n = write(sockfd, buffer, serializedmessageStruct.size());
-    // if (n < 0)
-    // {
-    //     perror("ERROR writing to socket");
-    //     exit(1);
-    // }
-
-    // std::cout << "Message sent.\nDone." << std::endl;
+    std::cout << "Message sent.\nDone." << std::endl;
 }
 
 /* Connect to the server using the given hostname and port number */
@@ -212,35 +207,6 @@ int connectToServer(int portno, char *hostName) {
     }
     std::cout << "Successfully connected to server." << endl;
     return sockfd;
-}
-
-vec serializeFile(char *filePath)
-{
-    FILE *file;
-    vec bytes;
-    int c;
-
-    // Open as binary file
-    file = fopen(filePath, "rb");
-    if (file == NULL)
-    {
-        perror("Error opening file");
-        exit(0);
-    }
-    else
-    {
-        while (1)
-        {
-            c = fgetc(file);
-            if (c == EOF)
-            {
-                break;
-            }
-            bytes.push_back(c);
-        }
-        fclose(file);
-    }
-    return bytes;
 }
 
 void pushToBuffer(char buffer[], vec *bytesP)

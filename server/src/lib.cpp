@@ -387,6 +387,7 @@ vec hmp221::serialize(string item) {
       bytes.push_back((u8)item[i]);
     }
   } else {
+    std::cout << "Bug  here" << std::endl;
     throw;
   }
   return bytes;
@@ -636,12 +637,12 @@ vec hmp221::serialize(struct Message item) {
 }
 
 struct Message hmp221::deserialize_message(vec bytes) {
-  if (bytes.size() < 10) {
+  if (bytes.size() < 5) {
     throw;
   }
-  vec file_slice = slice(bytes, 2, 10);
+  vec file_slice = slice(bytes, 2, 11);
   string file_string = deserialize_string(file_slice);
-  if (file_string != "Message") {
+  if (file_string.compare(string("Message")) != 0) {
     throw;
   }
   
@@ -667,7 +668,7 @@ struct Message hmp221::deserialize_message(vec bytes) {
     index += 2;
     count += 1;
   }
-  // vec file_bytes = serialize(file_bytes_v);
+
   struct Message deserialized_message = {name, file_bytes_v};
   return deserialized_message;
 }

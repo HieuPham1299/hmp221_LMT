@@ -168,18 +168,19 @@ int main(int argv, char **argc)
 
             string messageType = checkMessageType(responseBytes);
 
-            if (messageType.compare("request") == 0)
+            if (messageType== "subscribe")
             {
+                std::cout << "Hello" << std::endl;
                 processRequest(newComSockfd, responseBytes, map);
                 printf("Terminating connection with %s:%d.\n", hostName, hostPortNo);
                 printf("--------------------------------\n");
             }
-            // else
-            // {
-            //     processReceive(responseBytes, map);
-            //     printf("Terminating connection with %s:%d.\n", hostName, hostPortNo);
-            //     printf("--------------------------------\n");
-            // }
+            else
+            {
+                processReceive(responseBytes, map);
+                printf("Terminating connection with %s:%d.\n", hostName, hostPortNo);
+                printf("--------------------------------\n");
+            }
             close(newComSockfd);
         }
     } /* end of while */
@@ -273,16 +274,17 @@ void processClientConnection(int newsockfd, char *hostName, int hostPortNo, int 
 }
 
 string checkMessageType(vec bytes) {
-    if (bytes.size() < 10) {
+    if (bytes.size() < 5) {     // FIXME: Check for the exact byte
         throw;
     }
-    vec file_slice = hmp221::slice(bytes, 2, 7);
-    string file_string = hmp221::deserialize_string(file_slice);
-    if (file_string == "File")
+    vec message_slice = hmp221::slice(bytes, 2, 10);
+    string message_string = hmp221::deserialize_string(message_slice);
+    std::cout << message_string << std::endl;
+    if (message_string.compare("Message") == 0)
     {
-        return "file";
+        return "publish";
     }
-    return "request";
+    return "subscribe";
 }
 
 void processRequest(unsigned int newComSockfd, vec responseBytes, HashMap *map) {
@@ -291,7 +293,7 @@ void processRequest(unsigned int newComSockfd, vec responseBytes, HashMap *map) 
     vec testBytes = hmp221::serialize((string)"Hello");
     map->put((string) "test", testBytes);
     if (map->get(channel) == (vector<unsigned char>) NULL) {
-        perror("No message published.");
+        perror("No message published on this channel.");
         return;
     }
     
@@ -318,41 +320,14 @@ void processRequest(unsigned int newComSockfd, vec responseBytes, HashMap *map) 
     cout << "Message sent.\nDone." << endl;
 }
 
-// void processReceive(vec responseBytes, HashMap *map)
-// {
-//     struct File fileStruct = hmp221::deserialize_file(responseBytes);
-//     printf("Received a file containing %ld bytes\n", fileStruct.bytes.size());
-//     string fileName = fileStruct.name;
-
-//     // Reference: https://en.cppreference.com/w/cpp/io/c/tmpfile
-//     FILE *pFile = tmpfile();
-//     for (int i = 0; i < fileStruct.bytes.size(); i++)
-//     {
-//         fputc(fileStruct.bytes[i], pFile);
-//     }
-//     rewind(pFile);
-//     map->put(fileName, pFile);
-//     cout << "Saved file" << endl;
-// }
-
-// vec serializeFile(HashMap *map, string fileName)
-// {
-//     vec bytes;
-//     int c;
-
-//     FILE *file = map->get(fileName);
-//     while (1)
-//     {
-//         int c = fgetc(file);
-//         if (c == EOF)
-//         {
-//             break;
-//         }
-//         bytes.push_back(c);
-//     }
-//     // fclose(file);
-//     return bytes;
-// }
+void processReceive(vec responseBytes, HashMap *map)
+{
+    struct Message messageStruct = hmp221::deserialize_message(responseBytes);
+    printf("Received a file containing %ld bytes\n", messageStruct.contentBytes.size());
+    string channel = messageStruct.channelName;
+    map->put(channel, messageStruct.contentBytes);
+    cout << "Saved file" << endl;
+}
 
 void pushToBuffer(char buffer[], vec *bytesP)
 {

@@ -22,7 +22,7 @@
 
 ## Bugs to be fixed:
 - Currently assigning fixed port number to incomming client, needs to assign dynamic port numbers in case there are multiple connections made at the same moment.
-- 
+- Add appropriate debug messages
 
 ## Moving foward
 - Complete publishing messages.
@@ -60,13 +60,13 @@ make all
 ```
 then,
 ```
-./build/bin/release/client --hostname [host's IP]:[portNo] --publish --topic [topicName] [message]
+./build/bin/release/client --hostname [host's IP]:[portNo] --publish [channel] [message]
 ```
 
 For example,
 
 ```
-./build/bin/release/client --hostname 192.168.0.1:8081 --publish --topic Testing HelloWorld
+./build/bin/release/client --hostname 192.168.0.1:8081 --publish Testing HelloWorld
 ```
 
 Here, we are publishing the message HelloWorld into the topic Testing. Note that topic name is unique
