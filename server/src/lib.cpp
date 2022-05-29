@@ -640,18 +640,17 @@ struct Message hmp221::deserialize_message(vec bytes) {
   if (bytes.size() < 5) {
     throw;
   }
-  vec file_slice = slice(bytes, 2, 11);
+  vec file_slice = slice(bytes, 2, 10);
   string file_string = deserialize_string(file_slice);
-  if (file_string.compare(string("Message")) != 0) {
+  if (file_string.compare("Message") != 0) {
     throw;
   }
   
-  u8 name_len = bytes[17]; // extract the name of the file
-
-  vec namev = slice(bytes, 16, 16 + name_len + 1);
+  u8 name_len = bytes[20]; // extract the channel name
+  vec namev = slice(bytes, 19, 19 + name_len + 1);
   string name = deserialize_string(namev);
 
-  int file_length_byte = 17 + name_len + 9;
+  int file_length_byte = 20 + name_len + 9;
   int file_length = bytes[file_length_byte];
   vec file_bytes_v;
   int offset = 0; // = 0 when size <= 255, = 1 when size > 255
@@ -668,7 +667,7 @@ struct Message hmp221::deserialize_message(vec bytes) {
     index += 2;
     count += 1;
   }
-
+  std::cout << name << std::endl;
   struct Message deserialized_message = {name, file_bytes_v};
   return deserialized_message;
 }

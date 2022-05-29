@@ -16,7 +16,7 @@ using namespace std;
 string checkMessageType(vec bytes);
 void processRequest(unsigned int newsockfd, vec responseBytes, HashMap *map);
 void processReceive(vec responseBytes, HashMap *map);
-void pushToBuffer(char buffer[], vec *serializedFileStruct);
+void pushToBuffer(char buffer[], vec *serializedMessageStruct);
 void processClientConnection(int newsockfd, char *hostName, int hostPortNo, int comPortNo);
 vec serializeFile(HashMap *map, string fileName);
 
@@ -135,7 +135,7 @@ int main(int argv, char **argc)
             /* This is the child process */
             close(sockfd);
             close(comSockfd);
-            processClientConnection(newsockfd, hostName, hostPortNo, comPortNo);
+            processClientConnection(newsockfd, hostName, hostPortNo, comPortNo++);
             exit(0);
         }
         else
@@ -168,9 +168,8 @@ int main(int argv, char **argc)
 
             string messageType = checkMessageType(responseBytes);
 
-            if (messageType== "subscribe")
+            if (messageType.compare("subscribe") == 0)
             {
-                std::cout << "Hello" << std::endl;
                 processRequest(newComSockfd, responseBytes, map);
                 printf("Terminating connection with %s:%d.\n", hostName, hostPortNo);
                 printf("--------------------------------\n");
@@ -298,20 +297,20 @@ void processRequest(unsigned int newComSockfd, vec responseBytes, HashMap *map) 
     }
     
     struct Message messageStruct = {channelName : channel, contentBytes : map->get(channel)};
-    vec serializedFileStruct = hmp221::serialize(messageStruct);
+    vec serializedMessageStruct = hmp221::serialize(messageStruct);
     // Encrypt the bytes
-    for (int i = 0; i < serializedFileStruct.size(); i++)
+    for (int i = 0; i < serializedMessageStruct.size(); i++)
     {
-        serializedFileStruct[i] ^= KEY;
+        serializedMessageStruct[i] ^= KEY;
     }
-    char buffer[serializedFileStruct.size()];
+    char buffer[serializedMessageStruct.size()];
 
     // Push the encrypted bytes to buffer
-    pushToBuffer(buffer, &serializedFileStruct);
-    printf("Sending %ld bytes\n", serializedFileStruct.size());
+    pushToBuffer(buffer, &serializedMessageStruct);
+    printf("Sending %ld bytes\n", serializedMessageStruct.size());
 
     /* Send message to the server */
-    int n = write(newComSockfd, buffer, serializedFileStruct.size());
+    int n = write(newComSockfd, buffer, serializedMessageStruct.size());
     if (n < 0)
     {
         perror("ERROR writing to socket");
@@ -323,10 +322,10 @@ void processRequest(unsigned int newComSockfd, vec responseBytes, HashMap *map) 
 void processReceive(vec responseBytes, HashMap *map)
 {
     struct Message messageStruct = hmp221::deserialize_message(responseBytes);
-    printf("Received a file containing %ld bytes\n", messageStruct.contentBytes.size());
+    printf("Received a message of %ld bytes\n", messageStruct.contentBytes.size());
     string channel = messageStruct.channelName;
     map->put(channel, messageStruct.contentBytes);
-    cout << "Saved file" << endl;
+    std::cout << channel  << std::endl;
 }
 
 void pushToBuffer(char buffer[], vec *bytesP)

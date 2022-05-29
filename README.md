@@ -75,7 +75,11 @@ Here, we are publishing the message HelloWorld into the topic Testing. Note that
 
 ## 3. Client subscribe to a channel to receive message
 
-To receive a message, a client has to subscribe to a message
+To receive a message, a client has to subscribe to a channel:
+
+```
+./build/bin/release/client --hostname localhost:8000 --subscribe [channel]
+```
 
 ------------------------------
 ## Reference:

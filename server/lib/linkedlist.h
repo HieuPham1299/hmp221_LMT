@@ -3,45 +3,49 @@
 #include "llnode.h"
 #include <stdlib.h>
 
-namespace linkedlist {
-using namespace std;
+namespace linkedlist
+{
+    using namespace std;
 
-class LinkedList {
-  private:
-    linkedlist::Node* head;
-    linkedlist::Node* tail;
-  public:
-    size_t length;
-    LinkedList();
-    ~LinkedList();
-    size_t insertAtTail(string channel, vector<unsigned char> messageBytes);
-    // size_t insertAtHead(string item, FILE *fileContent);
-    // size_t insertAtIndex(size_t index, T item);
-    // T removeTail();
-    void printList();
-    // T removeHead();
-    // T removeAtIndex(size_t index);
-    bool containsItem(string channel);
-    Node *itemAtIndex(int index);
-    // remove(string item);
-    vector<unsigned char> getLatestMessage(string channel);
-};
+    class LinkedList
+    {
+    private:
+        linkedlist::Node *head;
+        linkedlist::Node *tail;
+
+    public:
+        size_t length;
+        LinkedList();
+        ~LinkedList();
+        size_t insertAtTail(string channel, vector<unsigned char> messageBytes);
+        // size_t insertAtHead(string item, FILE *fileContent);
+        // size_t insertAtIndex(size_t index, T item);
+        // T removeTail();
+        void printList();
+        // T removeHead();
+        // T removeAtIndex(size_t index);
+        bool containsItem(string channel);
+        Node *itemAtIndex(int index);
+        bool replaceItem(string channel, vector<unsigned char> newContentBytes);
+        // remove(string item);
+        vector<unsigned char> getLatestMessage(string channel);
+    };
 
     LinkedList::LinkedList()
     {
         // head = new Node();
         // tail = new Node();
-        this->head=NULL;
-        this->tail=NULL;
-        this->length=0;
+        this->head = NULL;
+        this->tail = NULL;
+        this->length = 0;
     }
 
     LinkedList::~LinkedList()
     {
-        Node* temp = this->head;
-        while(temp!=NULL)
+        Node *temp = this->head;
+        while (temp != NULL)
         {
-            Node* t = temp;
+            Node *t = temp;
             temp = temp->next;
             free(t);
         }
@@ -49,29 +53,48 @@ class LinkedList {
 
     size_t LinkedList::insertAtTail(string channel, vector<unsigned char> messageBytes)
     {
-        Node* node = new Node(channel, messageBytes);
-        if (node == NULL) {
+        Node *node = new Node(channel, messageBytes);
+        if (node == NULL)
+        {
             return 1;
         }
-        //if list is empty.
-        if(this->head == NULL) {
+        // if list is empty.
+        if (this->head == NULL)
+        {
             this->head = node;
             this->tail = node;
-        } else {
-            this->tail->next  = node;
-            this->tail 	= this->tail->next;
         }
-        this->length++;	
+        else
+        {
+            this->tail->next = node;
+            this->tail = this->tail->next;
+        }
+        this->length++;
         return 0;
     }
 
     bool LinkedList::containsItem(string channel)
     {
-        Node* current = this->head;
-        for(int i=0;i<this->length;i++)
+        Node *current = this->head;
+        for (int i = 0; i < this->length; i++)
         {
-            if(current->channel.compare(channel) == 0)
+            if (current->channel.compare(channel) == 0)
             {
+                return true;
+            }
+            current = current->next;
+        }
+        return false;
+    }
+
+    bool LinkedList::replaceItem(string channel, vector<unsigned char> newContentBytes)
+    {
+        Node *current = this->head;
+        for (int i = 0; i < this->length; i++)
+        {
+            if (current->channel.compare(channel) == 0)
+            {
+                current->messageBytes = newContentBytes;
                 return true;
             }
             current = current->next;
@@ -85,7 +108,7 @@ class LinkedList {
         for (int i = 0; i < this->length; i++)
         {
             if (current->channel.compare(channel) == 0)
-            {   
+            {
                 return current->messageBytes;
             }
             current = current->next;
@@ -108,7 +131,7 @@ class LinkedList {
     //         node->next 	= this->head;
     //         this->head 	= node;
     //     }
-    //     this->length++;	
+    //     this->length++;
     //     return 0;
     // }
 
@@ -140,17 +163,17 @@ class LinkedList {
     //     Node* temp;
     //     int i = 0;
     //     T item;
-    //     if(this->tail == NULL) 
-    //     {	
-    //         // List is Empty	
+    //     if(this->tail == NULL)
+    //     {
+    //         // List is Empty
     //         return 0;
     //     }
-    //     else 
+    //     else
     //     {
     //         temp = this->head;
 
     //         // Iterate to the end of the list
-    //         while(temp->next != this->tail) { 
+    //         while(temp->next != this->tail) {
     //             temp = temp->next;
     //         }
 
@@ -158,10 +181,10 @@ class LinkedList {
 
     //         Node* old_tail = this->tail;
     //         this->tail = temp;
-    //         this->tail->next = NULL;	
-    //         free(old_tail);	
+    //         this->tail->next = NULL;
+    //         free(old_tail);
     //     }
-    //     this->length--;	
+    //     this->length--;
     //     return item;
     // }
 
@@ -169,19 +192,19 @@ class LinkedList {
     // T LinkedList::removeHead()
     // {
     //     T item;
-    //     if(this->head == NULL) 
-    //     {	
-    //         // List is Empty	
+    //     if(this->head == NULL)
+    //     {
+    //         // List is Empty
     //         return 0;
-    //     } 
-    //     else 
+    //     }
+    //     else
     //     {
     //         item = this->head->item;
     //         Node* old_head = this->head;
-    //         this->head = this->head->next;	
-    //         free(old_head);	
+    //         this->head = this->head->next;
+    //         free(old_head);
     //     }
-    //     this->length--;	
+    //     this->length--;
     //     return item;
     // }
 
@@ -239,13 +262,12 @@ class LinkedList {
     //     return 0;
     // }
 
-
-    Node* LinkedList::itemAtIndex(int index)
+    Node *LinkedList::itemAtIndex(int index)
     {
-        Node* current = this->head;
-        for(int i = 0;i<index;i++)
+        Node *current = this->head;
+        for (int i = 0; i < index; i++)
         {
-            if(current->next!=NULL)
+            if (current->next != NULL)
             {
                 current = current->next;
             }
@@ -264,12 +286,12 @@ class LinkedList {
         {
             printf("Empty");
         }
-        Node* cP = this->head;
+        Node *cP = this->head;
         for (size_t i = 0; i < limit; i++)
         {
             printf("%s -> ", cP->channel);
             cP = cP->next;
         }
     }
-    
+
 }
