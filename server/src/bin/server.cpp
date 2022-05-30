@@ -179,22 +179,13 @@ int main(int argv, char **argc)
             }
             else
             {
-
-                bzero(buffer, 65536);
-                n = read(newComSockfd, buffer, 65536);
-                // if (buffer[0] == 42) {
-                //     continue;
-                // }
-                if (n < 0)
-                {
-                    exit(1);
-                }
-                vec responseBytess;
+                // vector to stored decrypted bytes
+                vec responseBytes;
                 for (int i = 0; i < 65536; i++)
                 {
-                    responseBytess.push_back(buffer[i] ^ KEY);
+                    responseBytes.push_back(buffer[i] ^ KEY);
                 }
-                processReceive(responseBytess, map);
+                processReceive(responseBytes, map);
                 printf("Terminating connection with %s:%d.\n", hostName, hostPortNo);
                 printf("--------------------------------\n");
             }

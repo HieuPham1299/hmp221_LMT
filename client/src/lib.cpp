@@ -465,6 +465,7 @@ vec hmp221::serialize(string item)
   }
   else
   {
+    std::cout << "Bug  here" << std::endl;
     throw;
   }
   return bytes;
@@ -779,19 +780,18 @@ vec hmp221::serialize(struct Message item)
 
 struct Message hmp221::deserialize_message(vec bytes)
 {
-  if (bytes.size() < 10)
+  if (bytes.size() < 5)
   {
-    throw;
+    return {NULL, (vec)NULL};
   }
   vec file_slice = slice(bytes, 2, 10);
   string file_string = deserialize_string(file_slice);
-  if (file_string != "Message")
+  if (file_string.compare("Message") != 0)
   {
-    throw;
+    return { NULL, (vec) NULL};
   }
 
-  u8 name_len = bytes[20]; // extract the name of the channel
-
+  u8 name_len = bytes[20]; // extract the channel name
   vec namev = slice(bytes, 19, 19 + name_len + 1);
   string name = deserialize_string(namev);
 
@@ -814,7 +814,7 @@ struct Message hmp221::deserialize_message(vec bytes)
     index += 2;
     count += 1;
   }
-  // vec file_bytes = serialize(file_bytes_v);
+  std::cout << name << std::endl;
   struct Message deserialized_message = {name, file_bytes_v};
   return deserialized_message;
 }

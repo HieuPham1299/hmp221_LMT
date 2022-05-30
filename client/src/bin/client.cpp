@@ -117,12 +117,6 @@ void requestFromServer(int portno, char *hostName, char *channel)
 
     n = read(sockfd, buffer, 65536);
 
-    // This is the case where the topic does not exist
-    if (buffer[0] = 42)
-    {
-        return;
-    }
-
     // When n < 0, there was an error reading from the socket
     if (n < 0)
     {
@@ -136,8 +130,12 @@ void requestFromServer(int portno, char *hostName, char *channel)
         responseBytes.push_back(buffer[i] ^ KEY);
     }
 
-    struct Message messageStruct = hmp221::deserialize_message(responseBytes);
+    // This is the case where the topic does not exist
 
+    struct Message messageStruct = hmp221::deserialize_message(responseBytes);
+    if (messageStruct.contentBytes == (vector<unsigned char>) NULL) {
+        std::cout << "NULL" << std::endl;
+    }
     printf("Received a %ld-byte message\n", messageStruct.contentBytes.size());
 
     std::cout << hmp221::deserialize_string(messageStruct.contentBytes) << std::endl;
