@@ -53,6 +53,8 @@ int main(int argv, char **argc)
     hostName = strtok(serverInfo, ":");
     hostPortNo = atoi(strtok(NULL, ":"));
 
+    printf("Server is running at %s:%d\n", hostName, hostPortNo);
+
     /* First call to socket() function */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
