@@ -15,10 +15,9 @@ using namespace std;
 
 void printFlagError();
 int connectToServer(int portno, char *hostName);
-void sendToServer(int portNo, char *hostName, char *channel, char* message);
+void sendToServer(int portNo, char *hostName, char *channel, char *message);
 void requestFromServer(int portNo, char *hostName, char *channel);
 void pushToBuffer(char *bufferP, vec *bytesP);
-
 
 int main(int argv, char **argc)
 {
@@ -65,9 +64,12 @@ int main(int argv, char **argc)
     // extract hostname and port number
     hostName = strtok(serverInfo, ":");
     portNo = atoi(strtok(NULL, ":"));
-    if (strcmp(mode, "publish") == 0) {
+    if (strcmp(mode, "publish") == 0)
+    {
         sendToServer(portNo, hostName, channel, message);
-    } else {
+    }
+    else
+    {
         requestFromServer(portNo, hostName, channel);
     }
 }
@@ -81,7 +83,8 @@ void printFlagError()
 }
 
 /* Request a file from the server */
-void requestFromServer(int portno, char *hostName, char *channel) {
+void requestFromServer(int portno, char *hostName, char *channel)
+{
     // Connect to server and get the socket descriptor
     int sockfd = connectToServer(portno, hostName);
     printf("Reading from channel \"%s\"\n", channel);
@@ -111,9 +114,16 @@ void requestFromServer(int portno, char *hostName, char *channel) {
     cout << "Message Sent." << endl;
 
     bzero(buffer, 65536);
- 
+
     n = read(sockfd, buffer, 65536);
 
+    // This is the case where the topic does not exist
+    if (buffer[0] = 42)
+    {
+        return;
+    }
+
+    // When n < 0, there was an error reading from the socket
     if (n < 0)
     {
         perror("ERROR reading from socket");
@@ -121,8 +131,9 @@ void requestFromServer(int portno, char *hostName, char *channel) {
     }
 
     vec responseBytes;
-    for (int i = 0; i < 65536; i++) {
-        responseBytes.push_back(buffer[i]^KEY);
+    for (int i = 0; i < 65536; i++)
+    {
+        responseBytes.push_back(buffer[i] ^ KEY);
     }
 
     struct Message messageStruct = hmp221::deserialize_message(responseBytes);
@@ -132,7 +143,7 @@ void requestFromServer(int portno, char *hostName, char *channel) {
     std::cout << hmp221::deserialize_string(messageStruct.contentBytes) << std::endl;
 
     printf("Terminating connection with %s:%d.\n", hostName, portno);
-} 
+}
 
 /* Send a file to the server */
 void sendToServer(int portno, char *hostName, char *channel, char *message)
@@ -144,7 +155,7 @@ void sendToServer(int portno, char *hostName, char *channel, char *message)
     string channelString(channel);
 
     printf("Sending message to channel \"%s\"\n", channel);
-    struct Message messageStruct = {channelName: channel, contentBytes: hmp221::serialize(string(message))};
+    struct Message messageStruct = {channelName : channel, contentBytes : hmp221::serialize(string(message))};
     printf("Read message: %ld bytes\n", messageStruct.contentBytes.size());
     vec serializedMessageStruct = hmp221::serialize(messageStruct);
 
@@ -170,8 +181,13 @@ void sendToServer(int portno, char *hostName, char *channel, char *message)
     std::cout << "Message sent.\nDone." << std::endl;
 }
 
-/* Connect to the server using the given hostname and port number */
-int connectToServer(int portno, char *hostName) {
+/**
+ * @brief Connect to the server using the given hostname and port number
+ * @param portno server's port number
+ * @param hostname server's name, usually represented by IP adress
+ */
+int connectToServer(int portno, char *hostName)
+{
     int sockfd, n;
     struct sockaddr_in serv_addr;
     struct hostent *server;

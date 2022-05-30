@@ -28,8 +28,8 @@ int main(int argv, char **argc)
     char *serverInfo;
     char *hostName;
     int hostPortNo;
-    int comPortNo = 8888;   // Port number that a socket used to communicate with children processes bound to. 
-                            // Data delivered through this socket comes from the hashmap
+    int comPortNo = 8888; // Port number that a socket used to communicate with children processes bound to.
+                          // Data delivered through this socket comes from the hashmap
     unsigned int sockfd, newsockfd, clilen;
     struct sockaddr_in serv_addr, cli_addr;
     int n, pid;
@@ -106,7 +106,8 @@ int main(int argv, char **argc)
      * for the incoming connection
      */
 
-    if (listen(sockfd, 5) == -1) {
+    if (listen(sockfd, 5) == -1)
+    {
         perror("ERROR on binding");
         exit(1);
     }
@@ -160,7 +161,7 @@ int main(int argv, char **argc)
             char buffer[65536];
             bzero(buffer, 65536);
             n = read(newComSockfd, buffer, 65536);
-            
+
             // Decrypted the message and push all bytes to a vector
             vec responseBytes;
             for (int i = 0; i < 65536; i++)
@@ -178,7 +179,22 @@ int main(int argv, char **argc)
             }
             else
             {
-                processReceive(responseBytes, map);
+
+                bzero(buffer, 65536);
+                n = read(newComSockfd, buffer, 65536);
+                // if (buffer[0] == 42) {
+                //     continue;
+                // }
+                if (n < 0)
+                {
+                    exit(1);
+                }
+                vec responseBytess;
+                for (int i = 0; i < 65536; i++)
+                {
+                    responseBytess.push_back(buffer[i] ^ KEY);
+                }
+                processReceive(responseBytess, map);
                 printf("Terminating connection with %s:%d.\n", hostName, hostPortNo);
                 printf("--------------------------------\n");
             }
@@ -189,21 +205,24 @@ int main(int argv, char **argc)
     return 0;
 }
 
-void ppause(int n) {
-  int x = 0;
-  while(x < n) {
-    x+=1;
-  }
+void ppause(int n)
+{
+    int x = 0;
+    while (x < n)
+    {
+        x += 1;
+    }
 }
 
 /**
  * @brief process client request to a child process
- * 
+ *
  * @param hostName Name of parent process
  * @param hostPortNo Port number that the parent's socket is bound to
  * @param comPortNo Port number of parent's communication socket
  */
-void processClientConnection(int newsockfd, char *hostName, int hostPortNo, int comPortNo) {
+void processClientConnection(int newsockfd, char *hostName, int hostPortNo, int comPortNo)
+{
 
     // Creating a child-parent connection:
     char buffer[65536];
@@ -274,8 +293,16 @@ void processClientConnection(int newsockfd, char *hostName, int hostPortNo, int 
     close(sockfd);
 }
 
-string checkMessageType(vec bytes) {
-    if (bytes.size() < 5) {     // FIXME: Check for the exact byte
+/**
+ * @brief Subroutine to check the type of incomming client request (subscribe or publish)
+ * 
+ * @param bytes bytes sent from client 
+ * @return the request type
+ */
+string checkMessageType(vec bytes)
+{
+    if (bytes.size() < 5)
+    { // FIXME: Check for the exact byte
         throw;
     }
     vec message_slice = hmp221::slice(bytes, 2, 10);
@@ -288,16 +315,22 @@ string checkMessageType(vec bytes) {
     return "subscribe";
 }
 
-void processRequest(unsigned int newComSockfd, vec responseBytes, HashMap *map) {
+/**
+ * @brief Subroutine to process the subscribe request from the client
+ * 
+ * @param newComSockfd the socket via which communication is done
+ * @param responseBytes decrypted bytes sent from client
+ * @param map hashmap to store the channel:message pairs
+ */
+void processRequest(unsigned int newComSockfd, vec responseBytes, HashMap *map)
+{
     struct Request requestStruct = hmp221::deserialize_request(responseBytes);
     string channel = requestStruct.name;
-    vec testBytes = hmp221::serialize((string)"Hello");
-    map->put((string) "test", testBytes);
-    if (map->get(channel) == (vector<unsigned char>) NULL) {
+    if (map->get(channel) == (vector<unsigned char>)NULL)
+    {
         perror("No message published on this channel.");
         return;
     }
-    
     struct Message messageStruct = {channelName : channel, contentBytes : map->get(channel)};
     vec serializedMessageStruct = hmp221::serialize(messageStruct);
     // Encrypt the bytes
@@ -321,15 +354,26 @@ void processRequest(unsigned int newComSockfd, vec responseBytes, HashMap *map) 
     cout << "Message sent.\nDone." << endl;
 }
 
+/**
+ * @brief Subroutine to process the message published from the client
+ * 
+ * @param responseBytes the decrypted bytes sent from the client
+ * @param map hashmap to store the message under an unique channel
+ */
 void processReceive(vec responseBytes, HashMap *map)
 {
     struct Message messageStruct = hmp221::deserialize_message(responseBytes);
     printf("Received a message of %ld bytes\n", messageStruct.contentBytes.size());
     string channel = messageStruct.channelName;
     map->put(channel, messageStruct.contentBytes);
-    std::cout << channel  << std::endl;
 }
 
+/**
+ * @brief Subroutine to push a vector of bytes to a buffer
+ * 
+ * @param buffer 
+ * @param bytesP 
+ */
 void pushToBuffer(char buffer[], vec *bytesP)
 {
     int i = 0;

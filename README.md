@@ -28,6 +28,7 @@
 - Clean up info messages after that portion is done
 
 ## Moving foward
+- Make client connection persistent and receive message immediately after the channel has new message.
 - Complete publishing messages.
 - Rigorous testing.
 - Write supporting library for high-level languages: Java, Python, and JavaScript.
