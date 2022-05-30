@@ -3,7 +3,7 @@
 ## Summary:
 - HMP221-LMT is a lightweight message transfer protocol, inspired by the famous MQTT( https://mqtt.org/ ). 
 
-- Due to its lightweight nature and minimum footprint, HMP221-LMT is especially suitable for communication between constrained devices.
+- Due to its lightweight nature and minimum footprint, HMP221-LMT is especially suitable for communication between constrained devices in Internet of Things(IoT) applications.
 
 - HMP221-LMT is built on top of TCP/IP protocol, providing reliable message transfer channels.
 
