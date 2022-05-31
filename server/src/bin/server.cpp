@@ -14,8 +14,8 @@
 
 using namespace std;
 string checkMessageType(vec bytes);
-void processRequest(unsigned int newsockfd, vec responseBytes, HashMap *map);
-void processReceive(vec responseBytes, HashMap *map);
+void processSubscribeRequest(unsigned int newsockfd, vec responseBytes, HashMap *map);
+void processPublishRequest(vec responseBytes, HashMap *map);
 void pushToBuffer(char buffer[], vec *serializedMessageStruct);
 void processClientConnection(int newsockfd, char *hostName, int hostPortNo, int comPortNo);
 vec serializeFile(HashMap *map, string fileName);
@@ -173,7 +173,7 @@ int main(int argv, char **argc)
 
             if (messageType.compare("subscribe") == 0)
             {
-                processRequest(newComSockfd, responseBytes, map);
+                processSubscribeRequest(newComSockfd, responseBytes, map);
                 printf("Terminating connection with %s:%d.\n", hostName, hostPortNo);
                 printf("--------------------------------\n");
             }
@@ -185,7 +185,7 @@ int main(int argv, char **argc)
                 {
                     responseBytes.push_back(buffer[i] ^ KEY);
                 }
-                processReceive(responseBytes, map);
+                processPublishRequest(responseBytes, map);
                 printf("Terminating connection with %s:%d.\n", hostName, hostPortNo);
                 printf("--------------------------------\n");
             }
@@ -313,7 +313,7 @@ string checkMessageType(vec bytes)
  * @param responseBytes decrypted bytes sent from client
  * @param map hashmap to store the channel:message pairs
  */
-void processRequest(unsigned int newComSockfd, vec responseBytes, HashMap *map)
+void processSubscribeRequest(unsigned int newComSockfd, vec responseBytes, HashMap *map)
 {
     struct Request requestStruct = hmp221::deserialize_request(responseBytes);
     string channel = requestStruct.name;
@@ -351,7 +351,7 @@ void processRequest(unsigned int newComSockfd, vec responseBytes, HashMap *map)
  * @param responseBytes the decrypted bytes sent from the client
  * @param map hashmap to store the message under an unique channel
  */
-void processReceive(vec responseBytes, HashMap *map)
+void processPublishRequest(vec responseBytes, HashMap *map)
 {
     struct Message messageStruct = hmp221::deserialize_message(responseBytes);
     printf("Received a message of %ld bytes\n", messageStruct.contentBytes.size());

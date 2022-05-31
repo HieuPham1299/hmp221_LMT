@@ -11,6 +11,14 @@ using std::end;
 #define MASK4 0x000000FF
 #define MASK8 0x00000000000000FF
 
+/**
+ * @brief Subroutine to slice the original vector into a new byte vector
+ * 
+ * @param bytes original bytes array
+ * @param vbegin index where slicing begins
+ * @param vend index where slicing ends
+ * @return a new vector
+ */
 vec hmp221::slice(vec &bytes, int vbegin, int vend)
 {
   auto start = bytes.begin() + vbegin;

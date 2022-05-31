@@ -13,10 +13,11 @@
 
 using namespace std;
 
+// Declared methods used to avoid compiler error
 void printFlagError();
 int connectToServer(int portno, char *hostName);
-void sendToServer(int portNo, char *hostName, char *channel, char *message);
-void requestFromServer(int portNo, char *hostName, char *channel);
+void publish(int portNo, char *hostName, char *channel, char *message);
+void subscribe(int portNo, char *hostName, char *channel);
 void pushToBuffer(char *bufferP, vec *bytesP);
 
 int main(int argv, char **argc)
@@ -66,11 +67,11 @@ int main(int argv, char **argc)
     portNo = atoi(strtok(NULL, ":"));
     if (strcmp(mode, "publish") == 0)
     {
-        sendToServer(portNo, hostName, channel, message);
+        publish(portNo, hostName, channel, message);
     }
     else
     {
-        requestFromServer(portNo, hostName, channel);
+        subscribe(portNo, hostName, channel);
     }
 }
 
@@ -82,8 +83,13 @@ void printFlagError()
     cout << "usage: client --publish [channel] [message]" << endl;
 }
 
-/* Request a file from the server */
-void requestFromServer(int portno, char *hostName, char *channel)
+/**
+ * @brief Subscribe to a channel from the server
+ * @param portNo server's port number
+ * @param hostName server's name
+ * @param channel channel's name
+ */
+void subscribe(int portno, char *hostName, char *channel)
 {
     // Connect to server and get the socket descriptor
     int sockfd = connectToServer(portno, hostName);
@@ -143,8 +149,14 @@ void requestFromServer(int portno, char *hostName, char *channel)
     printf("Terminating connection with %s:%d.\n", hostName, portno);
 }
 
-/* Send a file to the server */
-void sendToServer(int portno, char *hostName, char *channel, char *message)
+/**
+ * @brief Send a message to the server
+ * @param portNo server's port number
+ * @param hostName server's name
+ * @param channel channel's name
+ * @param message message to be published
+ */
+void publish(int portno, char *hostName, char *channel, char *message)
 {
     // Connect to server and get the socket descriptor
     int sockfd = connectToServer(portno, hostName);
