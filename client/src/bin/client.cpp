@@ -131,17 +131,23 @@ void subscribe(int portno, char *hostName, char *channel)
     }
 
     vec responseBytes;
+    bool hasMsg = false;
     for (int i = 0; i < 65536; i++)
     {
         responseBytes.push_back(buffer[i] ^ KEY);
+        if (responseBytes[i] != 0x2a) {
+            hasMsg = true;
+        }
+    }
+    printf("%d\n", hasMsg);
+    if (!hasMsg) {
+        std::cout << "NULL" << std::endl;
+        return;
     }
 
     // This is the case where the topic does not exist
 
     struct Message messageStruct = hmp221::deserialize_message(responseBytes);
-    if (messageStruct.contentBytes == (vector<unsigned char>) NULL) {
-        std::cout << "NULL" << std::endl;
-    }
     printf("Received a %ld-byte message\n", messageStruct.contentBytes.size());
 
     std::cout << hmp221::deserialize_string(messageStruct.contentBytes) << std::endl;
