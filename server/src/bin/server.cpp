@@ -372,7 +372,6 @@ void pushToBuffer(char buffer[], vec *bytesP)
 {
     for (int i = 0; i < bytesP->size(); i++)
     {
-        printf("%s", "Here");
         buffer[i] = (*bytesP)[i];
     }
 }
