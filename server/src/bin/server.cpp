@@ -317,20 +317,23 @@ void processSubscribeRequest(unsigned int newComSockfd, vec responseBytes, HashM
 {
     struct Request requestStruct = hmp221::deserialize_request(responseBytes);
     string channel = requestStruct.name;
+    struct Message messageStruct;
+    vec serializedMessageStruct;
     if (map->get(channel) == (vector<unsigned char>)NULL)
     {
         perror("No message published on this channel.");
-        return;
+    } else {
+        messageStruct = {channelName : channel, contentBytes : map->get(channel)};
+        vec serializedMessageStruct = hmp221::serialize(messageStruct);
     }
-    struct Message messageStruct = {channelName : channel, contentBytes : map->get(channel)};
-    vec serializedMessageStruct = hmp221::serialize(messageStruct);
+    
     // Encrypt the bytes
     for (int i = 0; i < serializedMessageStruct.size(); i++)
     {
         serializedMessageStruct[i] ^= KEY;
     }
     char buffer[serializedMessageStruct.size()];
-
+    bzero(buffer, serializedMessageStruct.size());
     // Push the encrypted bytes to buffer
     pushToBuffer(buffer, &serializedMessageStruct);
     printf("Sending %ld bytes\n", serializedMessageStruct.size());
@@ -367,9 +370,9 @@ void processPublishRequest(vec responseBytes, HashMap *map)
  */
 void pushToBuffer(char buffer[], vec *bytesP)
 {
-    int i = 0;
-    for (; i < bytesP->size(); i++)
+    for (int i = 0; i < bytesP->size(); i++)
     {
+        printf("%s", "Here");
         buffer[i] = (*bytesP)[i];
     }
 }
