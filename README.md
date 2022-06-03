@@ -13,6 +13,10 @@
 
 - The message size limit is 65536 bytes.
 
+## System requirements:
+- Ubuntu 20.04 LTS
+- gcc 9.3.0
+
 ## Features completed:
 - Subscribing to a channel and receiving the latest message
 
@@ -34,13 +38,11 @@
 - Write supporting library for high-level languages: Java, Python, and JavaScript.
 
 ## 1. To set up server: 
-
-Locate to the server folder, then type:
+The first step is to get the server up and running, otherwise, the client code will throw an exception. The Makefile first create object files and library files, then link them together to create an executable. Locate to the server folder, then type:
 ```
 make all
 ```
-
-then,
+The executable is put in `build/bin/release`. To run the executable, type:
 ```
 ./build/bin/release/server --hostname localhost:[portNo]
 ```
