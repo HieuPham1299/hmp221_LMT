@@ -323,17 +323,17 @@ void processSubscribeRequest(unsigned int newComSockfd, vec responseBytes, HashM
     {
         perror("No message published on this channel.");
     } else {
-        messageStruct = {channelName : channel, contentBytes : map->get(channel)};
-        vec serializedMessageStruct = hmp221::serialize(messageStruct);
+        messageStruct = {channelName: channel, contentBytes: map->get(channel)};
+        std::cout << channel << std::endl;
+        serializedMessageStruct = hmp221::serialize(messageStruct);
     }
-    
+    printf("%d\n", serializedMessageStruct);
     // Encrypt the bytes
     for (int i = 0; i < serializedMessageStruct.size(); i++)
     {
         serializedMessageStruct[i] ^= KEY;
     }
     char buffer[serializedMessageStruct.size()];
-    bzero(buffer, serializedMessageStruct.size());
     // Push the encrypted bytes to buffer
     pushToBuffer(buffer, &serializedMessageStruct);
     printf("Sending %ld bytes\n", serializedMessageStruct.size());

@@ -95,6 +95,7 @@ void subscribe(int portno, char *hostName, char *channel)
     int sockfd = connectToServer(portno, hostName);
     printf("Reading from channel \"%s\"\n", channel);
     struct Request requestStruct = {name : channel};
+    bool hasMsg = false;
     vec serializedRequest = hmp221::serialize(requestStruct);
     // Encrypt the bytes
     for (int i = 0; i < serializedRequest.size(); i++)
@@ -102,7 +103,7 @@ void subscribe(int portno, char *hostName, char *channel)
         serializedRequest[i] ^= KEY;
     }
 
-    char buffer[65536] = {};
+    char buffer[65536];
     bzero(buffer, 65536);
 
     // Push the encrypted bytes to buffer
@@ -131,7 +132,6 @@ void subscribe(int portno, char *hostName, char *channel)
     }
 
     vec responseBytes;
-    bool hasMsg = false;
     for (int i = 0; i < 65536; i++)
     {
         responseBytes.push_back(buffer[i] ^ KEY);

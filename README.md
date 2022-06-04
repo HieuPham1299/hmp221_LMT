@@ -28,11 +28,11 @@
 - Currently assigning fixed port number to incomming client, needs to assign dynamic port numbers in case there are multiple connections made at the same moment -> DONE
 - Add appropriate debug messages -> DONE
 - Allow connections from other physical machines (currently only local host communication is working) -> DONE
-- Fix errors throwing when subscribing to a non-existent channel
+- Fix errors throwing when subscribing to a non-existent channel -> DONE
 - Clean up info messages after that portion is done
 
 ## Moving foward
-- Make client connection persistent and receive message immediately after the channel has new message.
+- Make client connection persistent and receive message immediately after the channel has new message. -> DOING
 - Complete publishing messages.
 - Rigorous testing.
 - Write supporting library for high-level languages: Java, Python, and JavaScript.
