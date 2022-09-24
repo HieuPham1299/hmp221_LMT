@@ -53,7 +53,7 @@ For example:
 ./build/bin/release/server --hostname localhost:8081
 ```
 
-The server will be running on port 8081 of the current machine. In case port 8081 is occupied, consider switching to another port.
+The server will be listening on port 8081 of the current machine. In case port 8081 is occupied, consider switching to another port.
 
 -------------------------------
 
