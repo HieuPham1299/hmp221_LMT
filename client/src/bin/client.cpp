@@ -36,14 +36,14 @@ int main(int argv, char **argc)
         {
             if (strcmp(currentString, "--subscribe") == 0)
             {
-                mode = "subscribe";
+                mode = (char*)"subscribe";
                 hasValidModeFlag = true;
                 channel = *(argc + i + 1);
                 break;
             }
             else if (strcmp(currentString, "--publish") == 0)
             {
-                mode = "publish";
+                mode = (char*)"publish";
                 hasValidModeFlag = true;
                 channel = *(argc + i + 1);
                 message = *(argc + i + 2);
@@ -108,7 +108,6 @@ void subscribe(int portno, char *hostName, char *channel)
 
     // Push the encrypted bytes to buffer
     pushToBuffer(buffer, &serializedRequest);
-    printf("Sending %ld bytes\n", serializedRequest.size());
 
     /* Send message to the server */
     int n = write(sockfd, buffer, serializedRequest.size());
@@ -118,7 +117,6 @@ void subscribe(int portno, char *hostName, char *channel)
         perror("ERROR sending request");
         exit(1);
     }
-    cout << "Message Sent." << endl;
 
     bzero(buffer, 65536);
 
@@ -139,16 +137,14 @@ void subscribe(int portno, char *hostName, char *channel)
             hasMsg = true;
         }
     }
-    printf("%d\n", hasMsg);
     if (!hasMsg) {
-        std::cout << "NULL" << std::endl;
+        std::cout << "" << std::endl;
         return;
     }
 
     // This is the case where the topic does not exist
 
     struct Message messageStruct = hmp221::deserialize_message(responseBytes);
-    printf("Received a %ld-byte message\n", messageStruct.contentBytes.size());
 
     std::cout << hmp221::deserialize_string(messageStruct.contentBytes) << std::endl;
 
@@ -172,7 +168,6 @@ void publish(int portno, char *hostName, char *channel, char *message)
 
     printf("Sending message to channel \"%s\"\n", channel);
     struct Message messageStruct = {channelName : channel, contentBytes : hmp221::serialize(string(message))};
-    printf("Read message: %ld bytes\n", messageStruct.contentBytes.size());
     vec serializedMessageStruct = hmp221::serialize(messageStruct);
 
     // Encrypt the bytes
@@ -184,7 +179,6 @@ void publish(int portno, char *hostName, char *channel, char *message)
 
     // Push the encrypted bytes to buffer
     pushToBuffer(buffer, &serializedMessageStruct);
-    printf("Sending %ld bytes\n", serializedMessageStruct.size());
 
     /* Send message to the server */
     int n = write(sockfd, buffer, serializedMessageStruct.size());
@@ -237,7 +231,6 @@ int connectToServer(int portno, char *hostName)
         perror("ERROR connecting");
         exit(1);
     }
-    std::cout << "Successfully connected to server." << endl;
     return sockfd;
 }
 
