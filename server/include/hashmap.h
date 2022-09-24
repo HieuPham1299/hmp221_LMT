@@ -95,13 +95,14 @@ HashMap::~HashMap()
 
 vector<unsigned char> HashMap::get(string channel)
 {
+  vector<unsigned char> output;
   unsigned long hashed = hash(channel);
   bool res = this->array[hashed]->containsItem(channel);
   if (res)
   {
-    return this->array[hashed]->getLatestMessage(channel);
+    output = this->array[hashed]->getLatestMessage(channel);
   }
-  return (vector<unsigned char>)NULL;
+  return output;
 }
 
 unsigned long HashMap::hash(string channel)
@@ -189,14 +190,4 @@ size_t HashMap::len()
 size_t HashMap::capacity()
 {
   return (size_t)(0.7 * (double)this->size) - 1;
-}
-
-void HashMap::print()
-{
-  for (int i = 0; i < this->size; i++)
-  {
-    printf("List %d: ", i + 1);
-    this->array[i]->printList();
-    printf("\n");
-  }
 }

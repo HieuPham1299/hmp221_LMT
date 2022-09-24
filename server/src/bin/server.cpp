@@ -298,12 +298,11 @@ string checkMessageType(vec bytes)
     }
     vec message_slice = hmp221::slice(bytes, 2, 10);
     string message_string = hmp221::deserialize_string(message_slice);
-    std::cout << message_string << std::endl;
     if (message_string.compare("Message") == 0)
     {
-        return "publish";
+        return string("publish");
     }
-    return "subscribe";
+    return string("subscribe");
 }
 
 /**
@@ -319,7 +318,7 @@ void processSubscribeRequest(unsigned int newComSockfd, vec responseBytes, HashM
     string channel = requestStruct.name;
     struct Message messageStruct;
     vec serializedMessageStruct;
-    if (map->get(channel) == (vector<unsigned char>)NULL)
+    if (map->get(channel).size() == 0)
     {
         perror("No message published on this channel.");
     } else {
@@ -327,8 +326,7 @@ void processSubscribeRequest(unsigned int newComSockfd, vec responseBytes, HashM
         std::cout << channel << std::endl;
         serializedMessageStruct = hmp221::serialize(messageStruct);
     }
-    printf("%d\n", serializedMessageStruct);
-    // Encrypt the bytes
+    // Encrypt the bytes 
     for (int i = 0; i < serializedMessageStruct.size(); i++)
     {
         serializedMessageStruct[i] ^= KEY;
@@ -336,7 +334,6 @@ void processSubscribeRequest(unsigned int newComSockfd, vec responseBytes, HashM
     char buffer[serializedMessageStruct.size()];
     // Push the encrypted bytes to buffer
     pushToBuffer(buffer, &serializedMessageStruct);
-    printf("Sending %ld bytes\n", serializedMessageStruct.size());
 
     /* Send message to the server */
     int n = write(newComSockfd, buffer, serializedMessageStruct.size());
